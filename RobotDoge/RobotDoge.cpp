@@ -237,7 +237,7 @@ int main()
 				oldSpeed.y() + (collector.accel.y()*dt),
 				oldSpeed.z() + (collector.accel.z()*dt));
 
-			avgSpeed = myo::Vector3<double>((numSteps - 1)*avgSpeed.x() + (collector.accel.x()*dt) / numSteps,
+			avgSpeed = myo::Vector3<double>((numSteps - 1)*avgSpeed.x() + (collector.accel.x()*dt) / numSteps, 
 				(numSteps - 1)*avgSpeed.y() + (collector.accel.y()*dt) / numSteps,
 				(numSteps - 1)*avgSpeed.z() + (collector.accel.z()*dt) / numSteps);
 
