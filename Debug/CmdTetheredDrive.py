@@ -171,12 +171,19 @@ class TetheredDriveApp(Tk):
 	# get16Signed returns a 16-bit signed value.
 	def get16Signed(self):
 		return getDecodedBytes(2, ">h")
-
+	
+	def downReleaseWrapper(self):
+		event = FakeEvent()
+		event.type = '3'
+		event.keysym = 'DOWN'
+		self.callbackKey(event)
 	# A handler for keyboard events. Feel free to add more!
 	def callbackKey(self, event):
-		k = event.keysym.upper()
+		k = event.keysym
+		if k.isalpha():
+			k = k.upper()
 		motionChange = False
-
+		
 		if event.type == '2': # KeyPress; need to figure out how to get constant
 			if k == 'P':   # Passive
 				self.sendCommandASCII('128')
@@ -188,8 +195,9 @@ class TetheredDriveApp(Tk):
 				self.sendCommandASCII('135')
 			elif k == 'D': # Dock
 				self.sendCommandASCII('143')
-			elif k == 'SPACE': # Beep
-				#self.ic1()
+			elif k == '1':
+				self.ic1()
+			elif k == '2':
 				self.mario1()
 			elif k == 'R': # Reset
 				self.sendCommandASCII('7')
@@ -204,6 +212,7 @@ class TetheredDriveApp(Tk):
 			elif k == 'DOWN':
 				self.callbackKeyDown = True
 				motionChange = True
+				self.after(1000, self.downReleaseWrapper)
 			elif k == 'LEFT':
 				self.callbackKeyLeft = True
 				self.callbackKeyRight = False
@@ -219,7 +228,6 @@ class TetheredDriveApp(Tk):
 		elif event.type == '3': # KeyRelease; need to figure out how to get constant
 			if k == 'UP':
 				self.callbackKeyUp = False
-				self.callbackKeyDown = False
 				self.callbackKeyRight = False
 				self.callbackKeyLeft = False
 				motionChange = True
@@ -274,13 +282,6 @@ class TetheredDriveApp(Tk):
 		self.after(1594, self.mario5)
 	def mario5(self):
 		self.sendCommandASCII('140 2 16 71 6 10 12 141 2')
-		
-#140 2 16 76 6 76 6 10 6 76 6 10 6 72 6 76 6 10 6 79 6 10 18 67 6 10 18 72 6 10 12 67 6 10 12 141 2
-#140 2 16 64 6 10 12 69 6 10 6 71 6 10 6 70 6 68 6 10 6 67 8 76 8 79 8 81 6 10 6 77 6 79 6 141 2
-#140 2 16 10 6 76 6 10 6 72 6 74 6 71 6 10 12 72 6 10 12 67 6 10 12 64 6 10 12 69 6 10 6 71 6 141 2
-#140 2 16 10 6 70 6 69 6 10 6 67 8 76 8 79 8 81 6 10 6 77 6 79 6 10 6 76 6 10 6 72 6 74 6 141 2
-#140 2 16 71 6 10 12 141 2
-#[page 2 here]
 
 	def onHelp(self):
 		tkMessageBox.showinfo('Help', helpText)
@@ -305,6 +306,7 @@ class TetheredDriveApp(Tk):
 				print "Connected!"
 			except:
 				print "Failed."
+		self.sendCommandASCII('132')
 
 	def getSerialPorts(self):
 		"""Lists serial ports
@@ -353,11 +355,11 @@ def inReader():
 	event = None
 	line = raw_input()
 	if line.split()[-1] == "doubleTap":
-		if t + 1.0 < clock(): 
+		if t + 1.5 < clock(): 
 			app.commandMode = not app.commandMode
 			t = clock()
 	print app.commandMode
-	if app.commandMode:
+	if not app.commandMode:
 		event = controlModeFunc(line)
 	else:
 		event = commandModeFunc(line)
@@ -404,18 +406,18 @@ def commandModeFunc(line):
 	elif (pose == "fingersSpread"):
 		event.keysym = 'DOWN'
 	elif (pose == "fist"):
-		event.keysym = 'UP'
+		event.keysym = 'DOWN'
 		event.type = '3'
 	elif (pose == "waveOut"):
-		if (arm == 'L'):
-			event.keysym = 'RIGHT'
+		if (arm == 'R'):
+			event.keysym = '2'
 		else:
-			event.keysym = 'LEFT'
+			event.keysym = '1'
 	elif (pose == "waveIn"):
-		if (arm == 'L'):
-			event.keysym = 'LEFT'
+		if (arm == 'R'):
+			event.keysym = '1'
 		else:
-			event.keysym = 'RIGHT'
+			event.keysym = '2'
 	return event
 
 if __name__ == "__main__":
@@ -423,8 +425,4 @@ if __name__ == "__main__":
 	app.after(10, inReader)
 	app.after(10, app.onConnect)
 	app.mainloop()
-	#while True:
-    #ball.draw()
-    #tk.update_idletasks()
-    #tk.update()
 
